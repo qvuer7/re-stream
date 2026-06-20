@@ -1,0 +1,15 @@
+# re-stream — just MediaMTX. All config lives in .env.
+# Run:  docker compose up -d
+services:
+  mediamtx:
+    image: bluenviron/mediamtx:1.11.3      # pinned; bump deliberately
+    container_name: re-stream-mediamtx
+    restart: unless-stopped
+    env_file: .env                          # host ports + MTX_* config both come from here
+    ports:
+      - "${RTMP_PORT:-1935}:1935/tcp"          # RTMP ingest (push a stream in)
+      - "${HLS_PORT:-8888}:8888/tcp"           # HLS playback
+      - "${WHEP_PORT:-8889}:8889/tcp"          # WebRTC/WHEP playback
+      - "${WEBRTC_UDP_PORT:-8189}:8189/udp"    # WebRTC media (UDP)
+      - "${WEBRTC_UDP_PORT:-8189}:8189/tcp"    # WebRTC media (TCP fallback)
+      - "127.0.0.1:${API_PORT:-9997}:9997/tcp" # control API (localhost only)
