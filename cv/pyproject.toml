@@ -1,0 +1,25 @@
+[project]
+name = "re-stream-vision"
+version = "0.1.0"
+description = "Vision processing modules over MediaMTX streams (vehicle detection / re-ID)"
+requires-python = ">=3.10"
+dependencies = [
+    "ultralytics>=8.3.0",
+    "opencv-python>=4.10.0",
+    "numpy>=1.26",
+]
+
+# T0 is a measurement spike. Heavier deps (pgvector driver, fastapi, pydantic,
+# torchreid) get added as their tasks land — kept out of the spike on purpose.
+
+[tool.uv]
+# uv resolves torch transitively via ultralytics. To force a CUDA build on the
+# rented GPU box, add an index pin here later, e.g.:
+#   [[tool.uv.index]] name = "pytorch-cu121" url = "https://download.pytorch.org/whl/cu121"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["scripts"]
