@@ -1,2 +1,17 @@
+# secrets / local config
 .env
 *.log
+
+# python / cv service
+.venv/
+__pycache__/
+*.pyc
+
+# model weights (auto-downloaded by ultralytics)
+*.pt
+cv/models/
+
+# recorded clips, annotated output, spike dumps
+*.mp4
+cv/clips/
+spike_out/

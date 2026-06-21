@@ -20,7 +20,8 @@ case "$ARG" in
   *)                  NAME="$ARG"; URL="http://${HOST}/${NAME}/index.m3u8" ;;
 esac
 
-OUT="${3:-clip_${NAME}_$(date +%Y%m%d-%H%M%S).mp4}"
+OUT="${3:-clips/clip_${NAME}_$(date +%Y%m%d-%H%M%S).mp4}"
+mkdir -p "$(dirname "$OUT")"
 
 echo "recording ${DURATION}s from ${URL}"
 echo "  -> ${OUT}"

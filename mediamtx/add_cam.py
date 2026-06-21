@@ -15,9 +15,12 @@ import json
 import sys
 import urllib.error
 import urllib.request
+from pathlib import Path
 
 MTX_API = "http://127.0.0.1:9997/v3"   # MediaMTX control API
-CAMS_FILE = "cams.json"
+# cams.json is test-fixture data (the cams we have on hand), not a prod catalog.
+# Resolve it next to this script so add_cam works from any CWD.
+CAMS_FILE = Path(__file__).with_name("cams.json")
 
 
 def rtsp_for(cam_id: str):

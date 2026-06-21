@@ -47,6 +47,8 @@ from pathlib import Path
 
 import cv2
 
+import roi as roilib
+
 # COCO class ids for vehicles: car, motorcycle, bus, truck — all collapsed to
 # one logical "vehicle" class (see merge_vehicle_classes) so a car<->truck label
 # flip across frames never reads as two different objects.
@@ -96,6 +98,8 @@ def parse_args() -> argparse.Namespace:
                    help="tracks shorter than this count as 'short' (fragmentation proxy)")
     p.add_argument("--classes", type=int, nargs="*", default=VEHICLE_CLASSES,
                    help="COCO class ids to keep (default: vehicles)")
+    p.add_argument("--roi", default="", help="ROI polygon json (define with define_roi.py); "
+                   "only detections whose bottom-center is inside it are counted/cropped")
     p.add_argument("--max-frames", type=int, default=0, help="stop after N frames (0 = whole clip)")
     p.add_argument("--out", default="spike_out", help="directory for per-track best crops + summary")
     return p.parse_args()
@@ -119,6 +123,11 @@ def main() -> int:
 
     model = YOLO(args.model)
     merge_vehicle_classes(model)  # car/truck/bus/moto -> single "vehicle" label
+    roi_poly = None
+    if args.roi:
+        roi_poly, _ = roilib.load_roi(args.roi)
+        print(f"ROI: {len(roi_poly)}-point polygon from {args.roi} "
+              f"(only cars with bottom-center inside are counted/cropped)")
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -152,6 +161,12 @@ def main() -> int:
         clss = boxes.cls.int().tolist()
 
         for tid, (x1, y1, x2, y2), conf, cls in zip(ids, xyxy, confs, clss):
+            # ROI gate: skip cars whose ground-contact point is outside the ROI.
+            # A track that's never in the ROI thus never gets created/counted/cropped.
+            if roi_poly is not None:
+                rx, ry = roilib.ref_point(x1, y1, x2, y2)
+                if not roilib.in_roi(roi_poly, rx, ry):
+                    continue
             n_boxes += 1
             t = tracks.setdefault(tid, Track(track_id=tid))
             t.frames.append(frame_idx)
